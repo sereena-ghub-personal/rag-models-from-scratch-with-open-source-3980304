@@ -38,7 +38,7 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
 RUN mkdir -p /models
 
 # Copy download script
-COPY download-model.sh /usr/local/bin/download-model.sh
+COPY .devcontainer/download-model.sh /usr/local/bin/download-model.sh
 
 RUN chmod +x /usr/local/bin/download-model.sh
 
