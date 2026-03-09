@@ -25,7 +25,9 @@ RUN apt-get update && apt-get install -y \
     sudo \
     python3 \
     python3-pip \
-    python3-venv
+    python3-venv \
+    zstd \
+    dos2unix
 
 # --- Install Git LFS ---
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
@@ -35,33 +37,13 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
 # Create models directory (but don't download yet)
 RUN mkdir -p /models
 
-# Create download script that will run at container startup
-RUN cat > /usr/local/bin/download-model.sh << 'EOF'
-#!/bin/bash
-set -e
-
-MODEL_DIR="/models/Qwen3-Embedding-0.6B"
-
-if [ ! -d "$MODEL_DIR/.git" ]; then
-    echo "Downloading Qwen3-Embedding-0.6B model..."
-    
-    if [ -z "$HF_USERNAME" ] || [ -z "$HF_TOKEN" ]; then
-        echo "Error: HF_USERNAME and HF_TOKEN environment variables must be set"
-        exit 1
-    fi
-    
-    # Clone the model
-    git clone "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/Qwen/Qwen3-Embedding-0.6B" "$MODEL_DIR"
-    echo "Model download completed successfully"
-else
-    echo "Model already exists at $MODEL_DIR, skipping download"
-fi
-EOF
+# Copy download script
+COPY download-model.sh /usr/local/bin/download-model.sh
 
 RUN chmod +x /usr/local/bin/download-model.sh
 
 # Ensure scripts are executable by all users
-RUN chmod 755 /usr/local/bin/download-model.sh 
+RUN chmod 755 /usr/local/bin/download-model.sh && dos2unix /usr/local/bin/download-model.sh 
 # /usr/local/bin/setup-postgres.sh
 
 # Add PostgreSQL APT repository
